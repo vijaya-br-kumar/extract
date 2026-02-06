@@ -66,13 +66,16 @@
         #results {
             display: none;
         }
+        #switchCamera {
+            float: right; 
+            margin-bottom: 1%;
+        }
     </style>
 </head>
 <body>
     <div id="overlay">
         <div class="spinner-border text-info" role="status"></div><br>
         <span class="sr-only">Thinking.....!</span>
-
     </div>
     <div class="container-fluid">
         <div class="row">
@@ -81,6 +84,7 @@
         <div class="row">
             <div class="col-md-6 video-container">
                 <label>Camera</label>
+                <button id="switchCamera" class="btn btn-primary btn-sm">Switch Camera</button>
                 <video id="video-capture" autoplay></video>
                 <div id="errorMsg"></div>
                 <button id="capture-btn" class="btn btn-primary actions">Capture Photo</button>
@@ -153,15 +157,18 @@
         const results = document.getElementById('results');
         const resultBody = document.getElementById('result-body');
         const defaultImage = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQs9gUXKwt2KErC_jWWlkZkGabxpeGchT-fyw&s";
-
-        // Request access to the camera
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => {
-                video.srcObject = stream;
-            })
-            .catch(err => {
-                errorMsg.textContent = `Error accessing camera: ${err.message}`;
-            });
+        let facingMode = "environment"; // Start with rear camera
+        const switchCameraButton = document.getElementById('switchCamera');
+        
+        function startCamera() {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                .then(stream => {
+                    video.srcObject = stream;
+                })
+                .catch(err => {
+                    errorMsg.innerText = `Error accessing camera: ${err.message}`;
+                });
+        }
         
         captureButton.addEventListener('click', () => {
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -233,8 +240,6 @@
         });
 
         function addRow(attribute, details) {
-            // 1. Get the table element
-            // let table = document.getElementById("myTable");
             let newRow = resultBody.insertRow(-1);
             let cell1 = newRow.insertCell(0);
             let cell2 = newRow.insertCell(1);
@@ -242,6 +247,13 @@
             cell2.innerText = details;
         }
 
+        switchCameraButton.addEventListener('click', () => {
+            facingMode = facingMode === "environment" ? "user" : "environment";
+            startCamera({ video: { facingMode: facingMode } });
+        });
+
+        // Start the camera on page load
+        startCamera({ video: { facingMode: facingMode } });
     </script>
 </body>
 </html>
